@@ -167,8 +167,7 @@
     display: flex; flex-direction: column; justify-content: space-between; min-height: 16rem;
     transition: background .4s;
   }
-  .cert:nth-child(1) { grid-column: span 7; }
-  .cert:nth-child(2) { grid-column: span 5; }
+  .cert:nth-child(1), .cert:nth-child(2) { grid-column: span 6; }
   .cert:nth-child(3) { grid-column: span 4; }
   .cert:nth-child(4) { grid-column: span 4; }
   .cert:nth-child(5) { grid-column: span 4; }
@@ -179,7 +178,7 @@
   }
   .cert:hover .seal { transform: rotate(120deg) scale(1.1); opacity: 1; }
   .cert h3 { font: 700 clamp(1.25rem, 2.4vw, 1.875rem)/1.1 var(--display); letter-spacing: -.02em; margin: 1.25rem 0 .5rem; }
-  .cert:nth-child(1) h3 { font-size: clamp(1.75rem, 3.6vw, 3rem); }
+  .awards .cert:nth-child(1) h3 { font-size: clamp(1.75rem, 3.6vw, 3rem); }
   .cert p { color: var(--muted); font-size: .9375rem; }
   .cert-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; }
   .cert-foot a { font: 500 .75rem var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--red); }
@@ -270,6 +269,7 @@
     <li><a href="#about">About</a></li>
     <li><a href="#skills">Skills</a></li>
     <li><a href="#awards">Awards</a></li>
+    <li><a href="#certs">Certificates</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
 </nav>
@@ -335,15 +335,23 @@
   <section id="awards" aria-labelledby="awards-h">
     <div class="sec-head reveal"><span class="num">03</span><h2 id="awards-h">Awa<span class="outline">rds</span></h2></div>
     <div class="certs awards">
-      <article class="cert reveal"><span class="seal" aria-hidden="true"></span><div><span class="mono">NSMO 2026 · National Olympiad · Biology</span><p class="place">2026</p><h3>National Finalist — Biology</h3><p>Advanced to the national finals of the NSMO olympiad in the biology track.</p></div><div class="cert-foot"><span class="mono">Biology</span><span class="mono red">Finalist</span></div></article>
-      <article class="cert reveal"><span class="seal" aria-hidden="true"></span><div><span class="mono">Cybersecurity Awareness Competition</span><p class="place">2<sup>nd</sup></p><h3>Second Place</h3><p>Recognized for excellence in promoting cybersecurity awareness.</p></div><div class="cert-foot"><span class="mono">Award</span><span class="mono red">Silver</span></div></article>
-      <article class="cert reveal"><span class="seal" aria-hidden="true"></span><div><span class="mono">WAICY 2025 · World AI Competition for Youth</span><p class="place">4<sup>th</sup></p><h3>Fourth Place</h3><p>Placed fourth in WAICY 2025, the World Artificial Intelligence Competition for Youth.</p></div><div class="cert-foot"><span class="mono">2025</span><span class="mono red">Top 4</span></div></article>
+      <article class="cert reveal"><span class="seal" aria-hidden="true"></span><div><span class="mono">NSMO 2026 · National Science &amp; Mathematics Olympiad</span><p class="place">2026</p><h3>National Finalist — Biology</h3><p>Advanced to the national finals of the National Science and Mathematics Olympiad (NSMO) in the biology track.</p></div><div class="cert-foot"><span class="mono">Biology</span><span class="mono red">Finalist</span></div></article>
+      <article class="cert reveal"><span class="seal" aria-hidden="true"></span><div><span class="mono">Cybersecurity Awareness Competition · Ministry of Education</span><p class="place">2<sup>nd</sup></p><h3>Second Place</h3><p>Placed second nationwide in the Cybersecurity Awareness Competition organized by the Saudi Ministry of Education.</p></div><div class="cert-foot"><span class="mono">Oct 2026</span><span class="mono red">National · 2nd</span></div></article>
+      <article class="cert reveal"><span class="seal" aria-hidden="true"></span><div><span class="mono">WAICY 2025 · World AI Competition for Youth</span><p class="place">4<sup>th</sup></p><h3>Fourth Place</h3><p>Placed fourth in the Large Language Model category at WAICY 2025, the World Artificial Intelligence Competition for Youth.</p></div><div class="cert-foot"><span class="mono">Dec 2025</span><span class="mono red">LLM Category</span></div></article>
     </div>
   </section>
 
 
+  <section id="certs" aria-labelledby="certs-h">
+    <div class="sec-head reveal"><span class="num">04</span><h2 id="certs-h">Certifi<wbr><span class="outline">cates</span></h2></div>
+    <div class="certs">
+      <article class="cert reveal"><span class="seal" aria-hidden="true"></span><div><span class="mono">Mawhiba · Jan 2025</span><h3>Certificate of Participation — Science &amp; Mathematics Olympiad</h3><p>Issued by Mawhiba for taking part in the National Science and Mathematics Olympiad.</p></div><div class="cert-foot"><span class="mono">Mawhiba</span><a href="https://www.linkedin.com/in/ammar-alqhtany-8b7930407/details/certifications/" target="_blank" rel="noopener">View ↗</a></div></article>
+      <article class="cert reveal"><span class="seal" aria-hidden="true"></span><div><span class="mono">Mawhiba</span><h3>Mawhiba Scale</h3><p>Mawhiba's national assessment for identifying gifted and talented students.</p></div><div class="cert-foot"><span class="mono">Mawhiba</span><a href="https://www.linkedin.com/in/ammar-alqhtany-8b7930407/details/certifications/" target="_blank" rel="noopener">View ↗</a></div></article>
+    </div>
+  </section>
+
   <section id="contact" class="contact" aria-labelledby="contact-h">
-    <span class="mono" id="contact-h">04 — Research, competitions or collaboration?</span>
+    <span class="mono" id="contact-h">05 — Research, competitions or collaboration?</span>
     <a href="https://www.linkedin.com/in/ammar-alqhtany-8b7930407" class="big" target="_blank" rel="noopener">Let's<span class="red">_</span>talk</a>
     <div class="socials">
       <a href="https://www.linkedin.com/in/ammar-alqhtany-8b7930407" target="_blank" rel="noopener">LinkedIn ↗</a><a href="https://github.com/amar1010900" target="_blank" rel="noopener">GitHub ↗</a>
