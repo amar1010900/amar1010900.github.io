@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Geometry.OS — حلول مسائل الهندسة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+--bg:#04060c;--panel:rgba(11,17,32,.74);--line:rgba(56,189,248,.16);--line2:rgba(56,189,248,.34);
+--cyan:#22d3ee;--blue:#3b82f6;--violet:#a78bfa;--pink:#f472b6;--green:#34d399;--amber:#fbbf24;--red:#fb7185;
+--text:#e7eefb;--muted:#8796b0;
+--mono:'JetBrains Mono','IBM Plex Sans Arabic',ui-monospace,Menlo,monospace;--sans:'IBM Plex Sans Arabic',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+background:
+radial-gradient(1100px 600px at 85% -10%,rgba(59,130,246,.20),transparent 60%),
+radial-gradient(900px 520px at -5% 110%,rgba(167,139,250,.16),transparent 60%),
+var(--bg);
+color:var(--text);font-family:var(--sans);overflow:hidden;-webkit-font-smoothing:antialiased;
+}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+background-image:linear-gradient(rgba(56,189,248,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(56,189,248,.055) 1px,transparent 1px);
+background-size:44px 44px;-webkit-mask-image:radial-gradient(ellipse at center,#000 25%,transparent 75%);mask-image:radial-gradient(ellipse at center,#000 25%,transparent 75%)}
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.6}
+button{font:inherit}
+
+/* ---------- top / bottom bars ---------- */
+.top{position:fixed;top:0;left:0;right:0;height:58px;display:flex;align-items:center;gap:16px;padding:0 clamp(12px,3vw,32px);
+background:rgba(4,6,12,.6);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line);z-index:20}
+.brand{font-family:var(--mono);font-weight:700;letter-spacing:.18em;font-size:13px;color:var(--cyan);display:flex;align-items:center;gap:10px;direction:ltr;white-space:nowrap}
+.brand svg{width:22px;height:22px;filter:drop-shadow(0 0 6px rgba(34,211,238,.7))}
+.ttl{flex:1;font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ttl b{color:var(--text);font-weight:600}
+.ctrls{display:flex;gap:8px}
+.btn{font-family:var(--mono);font-size:12px;color:var(--text);background:rgba(255,255,255,.04);border:1px solid var(--line2);border-radius:10px;padding:8px 12px;cursor:pointer;transition:.2s;white-space:nowrap}
+.btn:hover{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(34,211,238,.12);color:#fff}
+.btn.on{background:rgba(34,211,238,.14);border-color:var(--cyan);color:var(--cyan)}
+.btn:disabled{opacity:.35;pointer-events:none}
+.bottom{position:fixed;bottom:0;left:0;right:0;height:66px;display:flex;align-items:center;gap:14px;padding:0 clamp(12px,3vw,32px);
+background:rgba(4,6,12,.6);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);z-index:20}
+.prog{position:absolute;top:-1px;right:0;height:2px;width:0;background:linear-gradient(270deg,var(--cyan),var(--violet));box-shadow:0 0 12px var(--cyan);transition:width .5s}
+.count{font-family:var(--mono);font-size:13px;color:var(--cyan);direction:ltr;min-width:70px;text-align:center}
+.hint{flex:1;text-align:center;color:var(--muted);font-size:12.5px}
+kbd{font-family:var(--mono);font-size:11px;border:1px solid var(--line2);border-bottom-width:2px;border-radius:6px;padding:1px 7px;margin:0 2px;color:#dbeafe;background:rgba(255,255,255,.04)}
+@media(max-width:700px){.hint,.brand span,#autoBtn .lbl{display:none}}
+
+/* ---------- slides ---------- */
+.deck{position:fixed;top:58px;bottom:66px;left:0;right:0;z-index:5}
+.slide{position:absolute;inset:0;overflow-y:auto;padding:26px clamp(14px,4vw,56px) 44px;opacity:0;visibility:hidden;transform:translateX(-36px) scale(.985);
+transition:opacity .45s,transform .6s cubic-bezier(.2,.8,.2,1),visibility 0s .6s}
+.slide.back{transform:translateX(36px) scale(.985)}
+.slide.active{opacity:1;visibility:visible;transform:none;transition:opacity .5s,transform .6s cubic-bezier(.2,.8,.2,1)}
+.wrap{max-width:1280px;margin:0 auto}
+.shead{margin-bottom:20px}
+.kicker{font-family:var(--mono);font-size:12px;letter-spacing:.22em;color:var(--cyan);direction:ltr;text-align:right}
+h2{font-size:clamp(24px,3.2vw,38px);font-weight:700;margin:6px 0 12px;letter-spacing:-.01em}
+.concept{display:inline-flex;align-items:center;gap:10px;font-size:14px;color:#d8e4f8;background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.28);padding:7px 15px;border-radius:999px;line-height:1.7}
+.concept .d{width:7px;height:7px;border-radius:50%;background:var(--violet);box-shadow:0 0 10px var(--violet);flex:none}
+.grid2{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:22px;align-items:start}
+@media(max-width:940px){.grid2{grid-template-columns:1fr}}
+.stack{display:grid;gap:22px}
+
+.panel{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:18px;
+box-shadow:0 30px 80px -30px rgba(0,0,0,.75),inset 0 1px 0 rgba(255,255,255,.04);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.panel::before,.panel::after{content:"";position:absolute;width:20px;height:20px;border:2px solid var(--cyan);opacity:.75;pointer-events:none}
+.panel::before{top:-1px;right:-1px;border-left:0;border-bottom:0;border-top-right-radius:18px}
+.panel::after{bottom:-1px;left:-1px;border-right:0;border-top:0;border-bottom-left-radius:18px}
+.phead{display:flex;align-items:center;gap:8px;padding:11px 16px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--muted);direction:ltr}
+.phead i{width:10px;height:10px;border-radius:50%;flex:none}
+.phead i:nth-child(1){background:#fb7185}.phead i:nth-child(2){background:#fbbf24}.phead i:nth-child(3){background:#34d399}
+.phead .sp{flex:1}
+.phead .btn{padding:5px 10px;font-size:11px}
+.pbody{padding:14px 16px}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:560px){.duo{grid-template-columns:1fr}}
+.cap{font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;margin-top:4px}
+.cap b{color:var(--cyan)}
+
+/* ---------- svg figures ---------- */
+svg.fig{width:100%;height:auto;display:block;direction:ltr;overflow:visible}
+.seg{stroke:#dbe7ff;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-dasharray:1;transition:stroke .25s,stroke-width .25s}
+.slide.active .seg,.slide.active .drawp{animation:draw 1.1s cubic-bezier(.6,.1,.2,1) both;animation-delay:var(--d,0s)}
+@keyframes draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+.tick{stroke:var(--pink);stroke-width:2.2;stroke-linecap:round;transition:.25s}
+.par{stroke:var(--violet);stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.rt{stroke:var(--green);stroke-width:1.8;fill:rgba(52,211,153,.08);transition:.25s}
+.arc{stroke:var(--amber);stroke-width:1.7;fill:none;transition:.25s}
+.arc.p{stroke:var(--pink)}
+.alabel{fill:var(--amber);font:600 13px var(--mono);text-anchor:middle;dominant-baseline:middle;transition:.25s}
+.alabel.num{fill:var(--cyan);font-size:17px;font-weight:700}
+.vlabel{fill:#fff;font:700 15px var(--mono);text-anchor:middle;dominant-baseline:middle}
+.slabel{fill:#c3d4ee;font:600 13px var(--mono);dominant-baseline:middle;transition:.25s}
+.vdot{fill:var(--cyan)}
+.poly{fill:transparent;transition:fill .3s}
+.poly.hl,.poly.pin{fill:rgba(34,211,238,.17)}
+.poly.alt.hl,.poly.alt.pin{fill:rgba(167,139,250,.22)}
+.halo{fill:rgba(34,211,238,0);transition:.3s}
+.halo.hl,.halo.pin{fill:rgba(34,211,238,.28)}
+.seg.hl,.seg.pin{stroke:var(--cyan);stroke-width:4.5;filter:drop-shadow(0 0 6px rgba(34,211,238,.9))}
+.tick.hl,.tick.pin,.rt.hl,.rt.pin{stroke:var(--cyan)}
+.arc.hl,.arc.pin{stroke:var(--cyan);stroke-width:3;filter:drop-shadow(0 0 4px var(--cyan))}
+.alabel.hl,.alabel.pin,.slabel.hl,.slabel.pin{fill:var(--cyan)}
+
+/* ---------- solver steps ---------- */
+.steps{padding:6px 0}
+.step{position:relative;padding:13px 18px 13px 16px;border-inline-start:2px solid transparent;opacity:0;transform:translateY(10px);
+transition:opacity .45s,transform .45s,border-color .3s,background .3s}
+.step.on{opacity:1;transform:none;border-inline-start-color:rgba(34,211,238,.45)}
+.step + .step{border-top:1px dashed rgba(148,163,184,.13)}
+[data-hl]{cursor:pointer}
+.step[data-hl]:hover,.step.pinned{background:rgba(34,211,238,.06);border-inline-start-color:var(--cyan)}
+.sn{font-family:var(--mono);font-size:12px;color:var(--cyan);letter-spacing:.08em;margin-bottom:6px;direction:ltr;text-align:right}
+.step p{font-size:15.5px;line-height:1.95;color:#d6e2f5}
+.eq{display:inline-block;direction:ltr;unicode-bidi:isolate;font-family:var(--mono);font-size:14.5px;color:#d9f6ff;background:rgba(34,211,238,.07);
+border:1px solid rgba(34,211,238,.2);border-radius:10px;padding:7px 12px;margin:6px 0 2px;max-width:100%;overflow-x:auto;white-space:nowrap;vertical-align:middle}
+.eqs{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+bdi.al{direction:ltr;unicode-bidi:isolate}
+.alabel.ghost{opacity:0}.alabel.ghost.hl,.alabel.ghost.pin{opacity:1}
+.m{direction:ltr;unicode-bidi:isolate;font-family:var(--mono);color:#e0f2fe;white-space:nowrap}
+.ov{text-decoration:overline;text-decoration-thickness:1.5px}
+.res{margin-top:8px;font-size:14px;color:var(--muted)}
+.ans{display:inline-flex;align-items:center;gap:6px;padding:4px 14px;border-radius:999px;background:linear-gradient(135deg,var(--cyan),var(--violet));
+color:#050a14;font-weight:700;font-size:15px;box-shadow:0 0 24px -4px rgba(34,211,238,.6)}
+.ans .m{color:inherit}
+.ans.no{background:linear-gradient(135deg,#fb7185,#f59e0b);box-shadow:0 0 24px -4px rgba(251,113,133,.6)}
+.note{font-size:13px;color:var(--muted);line-height:1.8;margin-top:6px}
+.pairs{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.pair{border:1px solid var(--line2);background:rgba(255,255,255,.03);border-radius:10px;padding:6px 12px;transition:.2s}
+.pair:hover,.pair.pinned{border-color:var(--cyan);background:rgba(34,211,238,.1);box-shadow:0 0 0 3px rgba(34,211,238,.1)}
+.tip{font-family:var(--mono);font-size:11.5px;color:var(--muted);padding:0 16px 14px;text-align:center}
+
+/* tabs + readout */
+.tabs{display:flex;gap:8px;flex-wrap:wrap;padding:4px 16px 12px;justify-content:center}
+.tab{font-family:var(--mono);font-size:13px;color:var(--text);background:rgba(255,255,255,.04);border:1px solid var(--line2);border-radius:10px;padding:7px 14px;cursor:pointer;transition:.2s}
+.tab:hover,.tab.pinned,.tab.on{border-color:var(--cyan);color:var(--cyan);background:rgba(34,211,238,.1)}
+.readout{margin:0 16px 16px;min-height:46px;border:1px dashed var(--line2);border-radius:12px;padding:10px 14px;font-size:14.5px;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:10px;text-align:center;flex-wrap:wrap}
+
+/* proof table */
+.phdr,.prow{display:grid;grid-template-columns:30px minmax(0,1.1fr) minmax(0,1fr);gap:12px;align-items:center}
+.phdr{padding:10px 18px 10px 16px;font-family:var(--mono);font-size:12px;color:var(--muted);border-bottom:1px solid var(--line)}
+.prow .k{font-family:var(--mono);color:var(--cyan);font-size:13px}
+.prow .st{font-size:15px}
+.prow .why{color:#a9b9d3;font-size:14px;line-height:1.7}
+
+/* labs */
+.lab{margin:4px 16px 16px;border:1px solid var(--line);border-radius:14px;padding:14px;background:rgba(2,6,16,.55);transition:.3s}
+.lab.solved{border-color:rgba(52,211,153,.55);box-shadow:0 0 30px -10px rgba(52,211,153,.6)}
+.lh{display:flex;justify-content:space-between;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;color:var(--muted);margin-bottom:8px;direction:ltr}
+.xval{font-size:18px;color:#fff}
+.lab input[type=range]{width:100%;accent-color:var(--cyan);direction:ltr;margin:4px 0 8px}
+.lrow{display:grid;grid-template-columns:52px 104px 1fr 56px;gap:10px;align-items:center;font-family:var(--mono);font-size:12.5px;direction:ltr;margin:6px 0;color:#cbd5e1}
+.lrow .v{text-align:right;color:#fff}
+.bar{height:8px;border-radius:99px;background:rgba(148,163,184,.13);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--blue),var(--cyan));border-radius:99px;transition:width .25s}
+.lab.solved .bar i{background:linear-gradient(90deg,var(--green),#a7f3d0)}
+.lstat{font-size:13.5px;margin-top:8px;color:var(--muted);text-align:center}
+.lab.solved .lstat{color:var(--green)}
+
+/* coordinate plane */
+.gridl{stroke:rgba(148,163,184,.12);stroke-width:1}
+.axis{stroke:rgba(226,232,240,.55);stroke-width:1.4}
+.tnum{fill:#64748b;font:10.5px var(--mono);text-anchor:middle;dominant-baseline:middle}
+.tri1{fill:rgba(34,211,238,.13);stroke:var(--cyan);stroke-width:2.4;stroke-linejoin:round;stroke-dasharray:1}
+.tri2{fill:rgba(167,139,250,.14);stroke:var(--violet);stroke-width:2.4;stroke-linejoin:round;stroke-dasharray:1}
+.p1{fill:var(--cyan)}.p2{fill:var(--violet)}
+.ptl{font:700 14px var(--mono);text-anchor:middle;dominant-baseline:middle}
+.chk{font-family:var(--mono);font-size:12px;padding:3px 10px;border-radius:999px;display:inline-block;margin-top:4px}
+.chk.ok{color:var(--green);background:rgba(52,211,153,.12)}
+.chk.bad{color:var(--red);background:rgba(251,113,133,.13)}
+.code{font-family:var(--mono);font-size:12.5px;direction:ltr;text-align:left;padding:14px 16px;line-height:1.85;color:#cbd5e1;overflow-x:auto;white-space:pre}
+.code .c{color:#5f7190}.code .k{color:#c084fc}.code .f{color:#22d3ee}.code .s{color:#34d399}.code .n{color:#fbbf24}
+
+/* cover */
+.cover-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:44px;align-items:center;min-height:100%;max-width:1220px;margin:0 auto}
+@media(max-width:940px){.cover-grid{grid-template-columns:1fr;gap:26px}}
+.badge{font-family:var(--mono);font-size:12px;letter-spacing:.3em;color:var(--cyan);border:1px solid var(--line2);display:inline-block;padding:6px 14px;border-radius:999px;direction:ltr;background:rgba(34,211,238,.06)}
+h1{font-size:clamp(38px,6vw,76px);line-height:1.15;font-weight:700;margin:18px 0 12px}
+.grad{background:linear-gradient(120deg,#67e8f9,#818cf8 50%,#f0abfc);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:#b8c7de;font-size:17px;line-height:1.9;max-width:600px}
+.meta{display:flex;gap:12px;flex-wrap:wrap;margin:24px 0}
+.meta div{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:10px 18px}
+.meta small{display:block;color:var(--muted);font-size:12px}
+.meta b{font-size:16px}
+.cta{font-size:16px;font-weight:700;color:#04101a;background:linear-gradient(135deg,var(--cyan),var(--violet));border:0;border-radius:14px;padding:13px 26px;cursor:pointer;box-shadow:0 10px 40px -10px rgba(34,211,238,.8);transition:.2s}
+.cta:hover{transform:translateY(-2px);box-shadow:0 16px 50px -10px rgba(34,211,238,.9)}
+.keys{margin-top:16px;color:var(--muted);font-size:13px;line-height:2}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:18px}
+.chip{direction:ltr;font-family:var(--mono);font-size:12px;padding:6px 11px;border-radius:9px;border:1px solid var(--line);cursor:pointer;color:#cbd5e1;background:rgba(255,255,255,.02);transition:.2s}
+.chip:hover{border-color:var(--cyan);color:var(--cyan)}
+.term .step.bl{padding:5px 18px;border:0;font-family:var(--mono);font-size:13.5px;color:#cbd5e1}
+.term .cmd{direction:ltr;text-align:left;color:#e2e8f0}
+.term .cmd .pr{color:var(--green)}
+.term .ok{color:#a7f3d0}
+.cursor{animation:blink 1s steps(1) infinite;color:var(--cyan)}
+@keyframes blink{50%{opacity:0}}
+.holo{width:190px;margin:8px auto 18px;display:block;overflow:visible}
+.holo polygon,.holo circle{fill:none;stroke-width:1.3}
+.holo .r1{transform-origin:100px 108px;animation:spin 16s linear infinite;stroke:var(--cyan)}
+.holo .r2{transform-origin:100px 108px;animation:spin 11s linear infinite reverse;stroke:var(--violet)}
+.holo .r3{transform-origin:100px 108px;animation:spin 30s linear infinite;stroke:rgba(244,114,182,.7);stroke-dasharray:3 7}
+.holo g{filter:drop-shadow(0 0 6px rgba(34,211,238,.6))}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* dashboard */
+.dash{display:grid;grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:12px}
+.dash .step{padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--panel);cursor:pointer;overflow:hidden}
+.dash .step.on{border-color:var(--line)}
+.dash .step:hover{border-color:var(--cyan);transform:translateY(-2px)}
+.dash .step + .step{border-top:1px solid var(--line)}
+.dash .q{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.12em;display:flex;justify-content:space-between;align-items:center;direction:ltr}
+.dash .q i{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+.dash .a{font-size:17px;font-weight:700;margin-top:8px;line-height:1.5}
+.dash .t{font-size:12.5px;color:var(--muted);margin-top:2px}
+.stackchips{display:flex;flex-wrap:wrap;gap:8px;padding:16px}
+.sc{font-family:var(--mono);font-size:12.5px;border:1px solid var(--line2);border-radius:10px;padding:7px 12px;background:rgba(34,211,238,.05)}
+.sc b{color:var(--cyan)}
+
+/* menu */
+.menu{position:fixed;inset:0;z-index:40;background:rgba(3,5,10,.86);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:none;padding:84px clamp(16px,5vw,80px) 40px;overflow:auto}
+.menu.open{display:block}
+.menu h3{font-family:var(--mono);color:var(--cyan);letter-spacing:.2em;font-size:13px;margin:0 auto 18px;max-width:1100px;direction:ltr;text-align:right}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;max-width:1100px;margin:0 auto}
+.mitem{display:flex;gap:14px;align-items:center;text-align:right;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;cursor:pointer;color:var(--text);transition:.2s}
+.mitem:hover,.mitem.cur{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(34,211,238,.1)}
+.mitem .n{font-family:var(--mono);color:var(--cyan);font-size:20px;font-weight:700}
+@media (prefers-reduced-motion: reduce){*{animation-duration:.01s!important;transition-duration:.01s!important}}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+
+<header class="top">
+<div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="1.6"><polygon points="12,2 22,20 2,20"/><circle cx="12" cy="14" r="3.2"/></svg><span>GEOMETRY.OS</span></div>
+<div class="ttl" id="ttl"></div>
+<div class="ctrls">
+<button class="btn on" id="autoBtn" title="تشغيل الحلول تلقائيًا">▶ <span class="lbl">تلقائي</span></button>
+<button class="btn" id="menuBtn" title="فهرس الشرائح (M)">☰</button>
+<button class="btn" id="fsBtn" title="ملء الشاشة (F)">⛶</button>
+</div>
+</header>
+
+<main class="deck" id="deck">
+
+<!-- ===================== 0 · COVER ===================== -->
+<section class="slide" data-title="الغلاف">
+<div class="cover-grid">
+<div>
+<div class="badge">MATH × TECH · v1.0</div>
+<h1>حلول مسائل<br><span class="grad">الهندسة</span></h1>
+<p class="sub">تصنيف المثلثات، قياس الزوايا، المضلعات المتطابقة، المستوى الإحداثي، ومسلّمات التطابق والبراهين — محلولة خطوة بخطوة بأسلوب تقني تفاعلي.</p>
+<div class="meta">
+<div><small>إعداد</small><b>عمار القحطاني</b></div>
+<div><small>المادة</small><b>الرياضيات</b></div>
+<div><small>عدد المسائل</small><b>18 مسألة</b></div>
+</div>
+<button class="cta" data-go="1">ابدأ العرض ←</button>
+<div class="keys"><kbd>←</kbd><kbd>→</kbd> للتنقل · <kbd>Space</kbd> الخطوة التالية · <kbd>F</kbd> ملء الشاشة · <kbd>M</kbd> الفهرس</div>
+<div class="chips">
+<span class="chip" data-go="1">08–10</span><span class="chip" data-go="2">11–12</span><span class="chip" data-go="3">14–16</span>
+<span class="chip" data-go="4">18</span><span class="chip" data-go="5">19</span><span class="chip" data-go="6">21–22</span>
+<span class="chip" data-go="7">23–24</span><span class="chip" data-go="8">26</span><span class="chip" data-go="9">27</span><span class="chip" data-go="10">28–29</span>
+</div>
+</div>
+<div class="panel term">
+<div class="phead"><i></i><i></i><i></i><span class="sp"></span><span>~/math/geometry — zsh</span></div>
+<svg class="holo" viewBox="0 0 200 200">
+<g><circle class="r3" cx="100" cy="108" r="78"/><polygon class="r1" points="100,30 167.5,147 32.5,147"/><polygon class="r2" points="100,60 141.5,132 58.5,132"/></g>
+</svg>
+<div class="steps" style="padding-bottom:16px">
+<div class="step bl cmd"><span class="pr">$</span> geometry --init --lang=ar</div>
+<div class="step bl ok">✓ تحميل نظرية مجموع زوايا المثلث (180°)</div>
+<div class="step bl ok">✓ تحميل مسلّمات التطابق SSS · SAS · ASA</div>
+<div class="step bl ok">✓ تحميل صيغة المسافة بين نقطتين</div>
+<div class="step bl ok">✓ تحميل نظرية المثلث المتطابق الضلعين</div>
+<div class="step bl cmd"><span class="pr">$</span> solve --all <span class="cursor">▋</span></div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ===================== 1 · 8–10 ===================== -->
+<section class="slide" data-title="تصنيف المثلثات · 8–10">
+<div class="wrap">
+<div class="shead">
+<div class="kicker">// PROBLEMS 08 → 10</div>
+<h2>تصنيف المثلثات حسب زواياها</h2>
+<div class="concept"><span class="d"></span>حادّ: كل زواياه <span class="m">&lt; 90°</span> · قائم: فيه زاوية <span class="m">= 90°</span> · منفرج: فيه زاوية <span class="m">&gt; 90°</span></div>
+</div>
+<div class="grid2">
+<div class="panel">
+<div class="phead"><i></i><i></i><i></i><span class="sp"></span><span>render://figure_08-10.svg</span></div>
+<div class="pbody"><svg class="fig" id="f8" viewBox="0 0 380 290"></svg></div>
+<div class="tabs">
+<button class="tab" data-hl="f8:pADB" data-say="△ADB: فيه زاوية 120° ⇐ <span class='ans'>منفرج الزاوية</span>">△ADB</button>
+<button class="tab" data-hl="f8:pBCD" data-say="△BCD: فيه زاوية 90° ⇐ <span class='ans'>قائم الزاوية</span>">△BCD</button>
+<button class="tab" data-hl="f8:pABC" data-say="△ABC: فيه زاوية 90° ⇐ <span class='ans'>قائم الزاوية</span>">△ABC</button>
+</div>
+<div class="readout">اضغط على مثلث لإبرازه في الشكل</div>
+</div>
+<div class="panel term">
+<div class="phead"><i></i><i></i><i></i><span class="sp"></span><span>solver.run(08..10)</span><button class="btn run">▶ تشغيل</button></div>
+<div class="steps">
+<div class="step" data-hl="f8:pADB aA aB1 aD1">
+<div class="sn">08 › △ADB</div>
+<p>زواياه: <span class="m">35°</span> و <span class="m">25°</span> و <span class="m">120°</span></p>
+<span class="eq">35° + 25° + 120° = 180° ✓</span>
+<p>فيه زاوية أكبر من <span class="m">90°</span></p>
+<div class="res">التصنيف: <span class="ans">منفرج الزاوية</span></div>
+</div>
+<div class="step" data-hl="f8:pBCD aB2 aD2">
+<div class="sn">09 › △BCD</div>
+<p>زواياه: <span class="m">30°</span> و <span class="m">60°</span> و <span class="m">90°</span> (الزاوية C قائمة)</p>
+<span class="eq">30° + 60° + 90° = 180° ✓</span>
+<div class="res">التصنيف: <span class="ans">قائم الزاوية</span></div>
+</div>
+<div class="step" data-hl="f8:pABC aA aB1 aB2">
+<div class="sn">10 › △ABC</div>
+<p>الزاوية B تتكون من جزأين:</p>
+<span class="eq">∠ABC = 25° + 30° = 55°</span>
+<p>زواياه: <span class="m">35°</span> و <span class="m">55°</span> و <span class="m">90°</span></p>
+<div class="res">التصنيف: <span class="ans">قائم الزاوية</span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ===================== 2 · 11–12 ===================== -->
+<section class="slide" data-title="قيمة x — 11–12">
+<div class="wrap">
+<div class="shead">
+<div class="kicker">// PROBLEMS 11 → 12 · ALGEBRA</div>
+<h2>إيجاد قيمة x وأطوال الأضلاع</h2>
+<div class="concept"><span class="d"></span>الأضلاع التي عليها نفس العلامة متطابقة ⇐ نساوي عباراتها الجبرية</div>
+</div>
+<div class="grid2">
+<div class="panel">
+<div class="phead"><i></i><i></i><i></i><span class="sp"></span><span>render://figure_11-12.svg</span></div>
+<div class="pbody duo">
+<div><svg class="fig" id="f11" viewBox="0 0 370 290"></svg><div class="cap"><b>11</b> · △RST</div></div>
+<div><svg class="fig" id="f12" viewBox="0 0 360 290"></svg><div class="cap"><b>12</b> · △JKL</div></div>
+</div>
+<div class="lab" data-lab="11"></div>
+<div class="lab" data-lab="12"></div>
+</div>
+<div class="panel term">
+<div class="phead"><i></i><i></i><i></i><span class="sp"></span><span>solver.run(11..12)</span><button class="btn run">▶ تشغيل</button></div>
+<div class="steps">
+<div class="step" data-hl="f11:RS RT">
+<div class="sn">11 › المعادلة</div>
+<p>العلامة تدل على أن <span class="m"><span class="ov">RS</span> ≅ <span class="ov">RT</span></span> (مثلث متطابق الضلعين):</p>
+<div class="eqs"><span class="eq">3x − 5 = 2x + 7</span><span class="eq">3x − 2x = 7 + 5</span><span class="eq">x = 12</span></div>
+</div>
+<div class="step" data-hl="f11:RS RT ST">
+<div class="sn">11 › الأطوال</div>
+<div class="eqs"><span class="eq">RS = 3(12) − 5 = 31</span><span class="eq">RT = 2(12) + 7 = 31</span><span class="eq">ST = 42</span></div>
+<div class="res">النتيجة: <span class="ans"><span class="m">x = 12 · RS = RT = 31</span></span></div>
+</div>
+<div class="step" data-hl="f12:JK KL">
+<div class="sn">12 › المعادلة</div>
+<p>الأضلاع الثلاثة متطابقة (مثلث متطابق الأضلاع):</p>
+<div class="eqs"><span class="eq">3x + 6 = 4x</span><span class="eq">6 = 4x − 3x</span><span class="eq">x = 6</span></div>
+</div>
+<div class="step" data-hl="f12:JK KL JL">
+<div class="sn">12 › الأطوال + التحقق</div>
+<div class="eqs"><span class="eq">JK = 3(6) + 6 = 24</span><span class="eq">KL = 4(6) = 24</span><span class="eq">JL = 5(6) − 6 = 24 ✓</span></div>
+<div class="res">النتيجة: <span class="ans"><span class="m">x = 6 · JK = KL = JL = 24</span></span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ===================== 3 · 14–16 ===================== -->
+<section class="slide" data-title="قياس الزوايا · 14–16">
+<div class="wrap">
+<div class="shead">
+<div class="kicker">// PROBLEMS 14 → 16 · ANGLES</div>
+<h2>أوجد قياس الزوايا المرقّمة</h2>
+<div class="concept"><span class="d"></span>مجموع زوايا المثلث = 180° · الزاويتان على خط مستقيم مجموعهما 180° · المتقابلتان بالرأس متطابقتان</div>
+</div>
+<div class="grid2">
+<div class="panel">
+<div class="phead"><i></i><i></i><i></i><span class="sp"></span><span>render://figure_14-16.svg</span></div>
+<div class="pbody"><svg class="fig" id="f14" viewBox="0 0 460 320"></svg></div>
+<div class="tip">↺ مرّر على أي خطوة لإبراز أجزائها في الشكل</div>
+</div>
+<div class="panel term">
+<div class="phead"><i></i><i></i><i></i><span class="sp"></span><span>solver.run(14..16)</span><button class="btn run">▶ تشغيل</button></div>
+<div class="steps">
+<div class="step" data-hl="f14:pPQO a1 aP aQ">
+<div class="sn">14 › ∠1</div>
+<p>في المثلث الأيسر، حسب نظرية مجموع زوايا المثلث:</p>
+<span class="eq">∠1 = 180° − (75° + 35°) = 70°</span>
+<div class="res">النتيجة: <span class="ans"><span class="m">m∠1 = 70°</span></span></div>
+</div>
+<div class="step" data-hl="f14:a1 a2">
+<div class="sn">15 › ∠2</div>
+<p>الزاويتان 1 و 2 متجاورتان على خط مستقيم (متكاملتان):</p>
+<span class="eq">∠2 = 180° − 70° = 110°</span>
+<div class="res">النتيجة: <span class="ans"><span class="m">m∠2 = 110°</span></span></div>
+</div>
+<div class="step" data-hl="f14:pORS a1 a1v a3 aR">
+<div class="sn">16 › ∠3</div>
+<p>الزاوية المقابلة بالرأس للزاوية 1 تساويها <span class="m">(70°)</span>، وهي داخل المثلث الأيمن:</p>
+<span class="eq">∠3 = 180° − (70° + 28°) = 82°</span>
+<div class="res">النتيجة: <span class="ans"><span class="m">m∠3 = 82°</span></span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ===================== 4 · 18 ===================== -->
+<section class="slide" data-title="مضلعان متطابقان · 18">
+<div class="wrap">
+<div class="shead">
+<div class="kicker">// PROBLEM 18 · CONGRUENT POLYGONS</div>
+<h2>العناصر المتناظرة وعبارة التطابق</h2>
+<div class="concept"><span class="d"></span>المضلعان متطابقان إذا تطابقت جميع أضلاعهما وزواياهما المتناظرة</div>
+</div>
+<div class="grid2">
+<div class="panel">
+<div class="phead"><i></i><i></i><i></i><span class="sp"></span><span>render://figure_18.svg</span></div>
+<div class="pbody"><svg class="fig" id="f18" viewBox="0 0 560 275"></svg></div>
+<div class="tip">↺ مرّر أو اضغط على أي زوج ليضيء في الشكلين معًا</div>
+</div>
+<div class="panel term">
+<div class="phead"><i></i><i></i><i></i><span class="sp"></span><span>solver.run(18)</span><button class="btn run">▶ تشغيل</button></div>
+<div class="steps">
+<div class="step">
+<div class="sn">18 › الأضلاع المتناظرة</div>
+<div class="pairs">
+<span class="pair m" data-hl="f18:AB FG"><span class="ov">AB</span> ≅ <span class="ov">FG</span></span>
+<span class="pair m" data-hl="f18:BC GH"><span class="ov">BC</span> ≅ <span class="ov">GH</span></span>
+<span class="pair m" data-hl="f18:CD HJ"><span class="ov">CD</span> ≅ <span class="ov">HJ</span></span>
+<span class="pair m" data-hl="f18:DA JF"><span class="ov">DA</span> ≅ <span class="ov">JF</span></span>
+</div>
+</div>
+<div class="step">
+<div class="sn">18 › الزوايا المتناظرة</div>
+<div class="pairs">
+<span class="pair m" data-hl="f18:vA vF">∠A ≅ ∠F</span>
+<span class="pair m" data-hl="f18:aB aG vB vG">∠B ≅ ∠G</span>
+<span class="pair m" data-hl="f18:aC aH vC vH">∠C ≅ ∠H</span>
+<span class="pair m" data-hl="f18:aD aJ vD vJ">∠D ≅ ∠J</span>
+</div>
+<p class="note"><span class="m">∠A ≅ ∠F</span> لأن مجموع زوايا الشكل الرباعي 360° والزوايا الثلاث الأخرى متطابقة.</p>
+</div>
+<div class="step" data-hl="f18:AB BC CD DA FG GH HJ JF">
+<div class="sn">18 › عبارة التطابق</div>
+<p>نكتب الرؤوس بترتيب التناظر: <span class="m">A↔F ، B↔G ، C↔H ، D↔J</span></p>
+<div class="res">النتيجة: <span class="ans"><span class="m">ABCD ≅ FGHJ</span></span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ===================== 5 · 19 ===================== -->
+<section class="slide" data-title="مثلثان متطابقان · 19">
+<div class="wrap">
+<div class="shead">
+<div class="kicker">// PROBLEM 19 · CONGRUENT TRIANGLES</div>
+<h2>نطابق الزوايا بقياساتها ثم الأضلاع</h2>
+<div class="concept"><span class="d"></span><span class="m">61°</span> تقابل <span class="m">61°</span> · <span class="m">78°</span> تقابل <span class="m">78°</span> · <span class="m">41°</span> تقابل <span class="m">41°</span></div>
+</div>
+<div class="grid2">
+<div class="panel">
+<div class="phead"><i></i><i></i><i></i><span class="sp"></span><span>render://figure_19.svg</span></div>
+<div class="pbody"><svg class="fig" id="f19" viewBox="0 0 560 250"></svg></div>
+<div class="tip">↺ مرّر أو اضغط على أي زوج ليضيء في الشكلين معًا</div>
+</div>
+<div class="panel term">
+<div class="phead"><i></i><i></i><i></i><span class="sp"></span><span>solver.run(19)</span><button class="btn run">▶ تشغيل</button></div>
+<div class="steps">
+<div class="step">
+<div class="sn">19 › الزوايا المتناظرة</div>
+<div class="pairs">
+<span class="pair m" data-hl="f19:aX aJ">∠X ≅ ∠J (61°)</span>
+<span class="pair m" data-hl="f19:aY aK">∠Y ≅ ∠K (78°)</span>
+<span class="pair m" data-hl="f19:aZ aL">∠Z ≅ ∠L (41°)</span>
+</div>
+</div>
+<div class="step">
+<div class="sn">19 › الأضلاع المتناظرة</div>
+<div class="pairs">
+<span class="pair m" data-hl="f19:XY JK"><span class="ov">XY</span> ≅ <span class="ov">JK</span></span>
+<span class="pair m" data-hl="f19:YZ KL"><span class="ov">YZ</span> ≅ <span class="ov">KL</span> (40)</span>
+<span class="pair m" data-hl="f19:XZ JL"><span class="ov">XZ</span> ≅ <span class="ov">JL</span></span>
+</div>
+</div>
+<div class="step" data-hl="f19:XY YZ XZ JK KL JL">
+<div class="sn">19 › عبارة التطابق</div>
+<p>الترتيب: <span class="m">X↔J ، Y↔K ، Z↔L</span></p>
+<div class="res">النتيجة: <span class="ans"><span class="m">△XYZ ≅ △JKL</span></span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ===================== 6 · 21–22 ===================== -->
+<section class="slide" data-title="المستوى الإحداثي · 21–22">
+<div class="wrap">
+<div class="shead">
+<div class="kicker">// PROBLEMS 21 → 22 · COORDINATE PLANE</div>
+<h2>هل △ABC ≅ △XYZ ؟ نحسبها بالكود</h2>
+<div class="concept"><span class="d"></span>صيغة المسافة: <span class="m">d = √((x₂ − x₁)² + (y₂ − y₁)²)</span> ثم نطبّق SSS</div>
+</div>
+<div class="grid2">
+<div class="stack">
+<div class="panel">
+<div class="phead"><i></i><i></i><i></i><span class="sp"></span><span>plot://coordinate_plane.svg</span></div>
+<div class="tabs" style="padding-top:12px">
+<button class="tab cpTab on" data-set="21">مسألة 21</button>
+<button class="tab cpTab" data-set="22">مسألة 22</button>
+</div>
+<div class="pbody" style="padding-top:0"><svg class="fig" id="cp" viewBox="0 0 520 360"></svg></div>
+<div class="cap" id="cpLegend" style="padding-bottom:14px"></div>
+</div>
+<div class="panel">
+<div class="phead"><i></i><i></i><i></i><span class="sp"></span><span>engine.js</span></div>
+<div class="code"><span class="c">// نفس الكود اللي حسب الجدول في هذي الشريحة</span>
+<span class="k">const</span> <span class="f">dist</span> = (P, Q) =&gt; Math.<span class="f">hypot</span>(Q.x - P.x, Q.y - P.y);
+
+<span class="k">const</span> sides1 = [<span class="f">dist</span>(A,B), <span class="f">dist</span>(B,C), <span class="f">dist</span>(A,C)];
+<span class="k">const</span> sides2 = [<span class="f">dist</span>(X,Y), <span class="f">dist</span>(Y,Z), <span class="f">dist</span>(X,Z)];
+
+<span class="c">// SSS: الأضلاع الثلاثة المتناظرة متطابقة؟</span>
+<span class="k">const</span> congruent = sides1.<span class="f">every</span>((s, i) =&gt; s === sides2[i]);</div>
+</div>
+</div>
+<div class="panel term">
+<div class="phead"><i></i><i></i><i></i><span class="sp"></span><span id="cpRun">solver.run(21)</span><button class="btn run">▶ تشغيل</button></div>
+<div class="steps" id="cpRows"></div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ===================== 7 · 23–24 ===================== -->
+<section class="slide" data-title="مسلّمات التطابق · 23–24">
+<div class="wrap">
+<div class="shead">
+<div class="kicker">// PROBLEMS 23 → 24 · POSTULATES</div>
+<h2>أي مسلّمة تثبت التطابق؟</h2>
+<div class="concept"><span class="d"></span>SSS: ثلاثة أضلاع · SAS: ضلعان والزاوية المحصورة بينهما · ASA: زاويتان والضلع المحصور</div>
+</div>
+<div class="grid2">
+<div class="panel">
+<div class="phead"><i></i><i></i><i></i><span class="sp"></span><span>render://figure_23-24.svg</span></div>
+<div class="pbody duo">
+<div><svg class="fig" id="f23" viewBox="0 0 300 250"></svg><div class="cap"><b>23</b> · △ABC , △ADC</div></div>
+<div><svg class="fig" id="f24" viewBox="0 0 280 260"></svg><div class="cap"><b>24</b> · △ABC , △DBC</div></div>
+</div>
+<div class="tip">↺ مرّر على أي خطوة لإبراز أجزائها</div>
+</div>
+<div class="panel term">
+<div class="phead"><i></i><i></i><i></i><span class="sp"></span><span>solver.run(23..24)</span><button class="btn run">▶ تشغيل</button></div>
+<div class="steps">
+<div class="step" data-hl="f23:BC CD">
+<div class="sn">23 › ضلع</div>
+<p><span class="m"><span class="ov">BC</span> ≅ <span class="ov">DC</span></span> — من العلامات على الشكل</p>
+</div>
+<div class="step" data-hl="f23:r1 r2">
+<div class="sn">23 › زاوية</div>
+<p><span class="m">∠ACB ≅ ∠ACD</span> — كلتاهما قائمة <span class="m">(90°)</span> لأن <span class="m"><span class="ov">AC</span> ⊥ <span class="ov">BD</span></span></p>
+</div>
+<div class="step" data-hl="f23:AC pABC pADC">
+<div class="sn">23 › ضلع</div>
+<p><span class="m"><span class="ov">AC</span> ≅ <span class="ov">AC</span></span> — ضلع مشترك (خاصية الانعكاس)، والزاوية القائمة محصورة بين الضلعين</p>
+<div class="res">المسلّمة: <span class="ans"><span class="m">SAS</span></span></div>
+</div>
+<div class="step" data-hl="f24:BC AC CD pABC pDBC">
+<div class="sn">24 › التحليل</div>
+<p>المعلوم فقط الضلع المشترك <span class="m"><span class="ov">BC</span></span>. العلامة على <span class="m"><span class="ov">AC</span></span> تختلف عن العلامة على <span class="m"><span class="ov">CD</span></span>، ولا توجد زوايا معلومة التطابق.</p>
+<p>المعطيات لا تكفي لأي من <span class="m">SSS · SAS · ASA · AAS</span></p>
+<div class="res">النتيجة: <span class="ans no">غير ممكن</span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ===================== 8 · 26 ===================== -->
+<section class="slide" data-title="برهان ذو عمودين · 26">
+<div class="wrap">
+<div class="shead">
+<div class="kicker">// PROBLEM 26 · TWO-COLUMN PROOF</div>
+<h2>إثبات أن △ABE ≅ △CDE</h2>
+<div class="concept"><span class="d"></span>المعطيات: <span class="m"><span class="ov">AB</span> ∥ <span class="ov">DC</span></span> ، <span class="m"><span class="ov">AB</span> ≅ <span class="ov">DC</span></span></div>
+</div>
+<div class="grid2">
+<div class="panel">
+<div class="phead"><i></i><i></i><i></i><span class="sp"></span><span>render://figure_26.svg</span></div>
+<div class="pbody"><svg class="fig" id="f26" viewBox="0 0 360 285"></svg></div>
+<div class="tip">↺ مرّر على أي سطر من البرهان لإبراز أجزائه</div>
+</div>
+<div class="panel term">
+<div class="phead"><i></i><i></i><i></i><span class="sp"></span><span>proof.run(26)</span><button class="btn run">▶ تشغيل</button></div>
+<div class="phdr"><span>#</span><span>العبارات</span><span>المبررات</span></div>
+<div class="steps">
+<div class="step prow" data-hl="f26:AB DC"><span class="k">1</span><span class="st m"><span class="ov">AB</span> ∥ <span class="ov">DC</span> ، <span class="ov">AB</span> ≅ <span class="ov">DC</span></span><span class="why">معطيات</span></div>
+<div class="step prow" data-hl="f26:aA aC AE EC"><span class="k">2</span><span class="st m">∠BAE ≅ ∠DCE</span><span class="why">زاويتان متبادلتان داخليًا (القاطع <span class="m">AC</span>)</span></div>
+<div class="step prow" data-hl="f26:aB aD BE ED"><span class="k">3</span><span class="st m">∠ABE ≅ ∠CDE</span><span class="why">زاويتان متبادلتان داخليًا (القاطع <span class="m">BD</span>)</span></div>
+<div class="step prow" data-hl="f26:pABE pCDE aA aB aC aD AB DC"><span class="k">4</span><span class="st m">△ABE ≅ △CDE</span><span class="why">مسلّمة <b class="m">ASA</b> (الضلع <span class="m">AB</span> محصور بين الزاويتين)</span></div>
+<div class="step"><div class="res">النتيجة: <span class="ans"><span class="m">△ABE ≅ △CDE · ASA</span></span></div>
+<p class="note">طريقة أخرى: <span class="m">∠AEB ≅ ∠CED</span> (متقابلتان بالرأس) مع الخطوة 2 و<span class="m"><span class="ov">AB</span> ≅ <span class="ov">DC</span></span> ⇐ <span class="m">AAS</span>.</p></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ===================== 9 · 27 ===================== -->
+<section class="slide" data-title="الطائرة الورقية · 27">
+<div class="wrap">
+<div class="shead">
+<div class="kicker">// PROBLEM 27 · KITE PROOF</div>
+<h2>الطائرة الورقية: إثبات أن △WXY ≅ △WZY</h2>
+<div class="concept"><span class="d"></span>المعطى: <span class="m"><span class="ov">WY</span></span> ينصّف كلًّا من <span class="m">∠XWZ</span> و <span class="m">∠XYZ</span></div>
+</div>
+<div class="grid2">
+<div class="panel">
+<div class="phead"><i></i><i></i><i></i><span class="sp"></span><span>render://kite_27.svg</span></div>
+<div class="pbody"><svg class="fig" id="f27" viewBox="0 0 340 345" style="max-height:420px"></svg></div>
+<div class="tip">↺ مرّر على أي سطر من البرهان لإبراز أجزائه</div>
+</div>
+<div class="panel term">
+<div class="phead"><i></i><i></i><i></i><span class="sp"></span><span>proof.run(27)</span><button class="btn run">▶ تشغيل</button></div>
+<div class="phdr"><span>#</span><span>العبارات</span><span>المبررات</span></div>
+<div class="steps">
+<div class="step prow" data-hl="f27:WY aW1 aW2 aY1 aY2"><span class="k">1</span><span class="st"><span class="m"><span class="ov">WY</span></span> ينصّف <span class="m">∠XWZ</span> و <span class="m">∠XYZ</span></span><span class="why">معطى</span></div>
+<div class="step prow" data-hl="f27:aW1 aW2"><span class="k">2</span><span class="st m">∠XWY ≅ ∠ZWY</span><span class="why">تعريف منصّف الزاوية</span></div>
+<div class="step prow" data-hl="f27:WY"><span class="k">3</span><span class="st m"><span class="ov">WY</span> ≅ <span class="ov">WY</span></span><span class="why">خاصية الانعكاس (ضلع مشترك)</span></div>
+<div class="step prow" data-hl="f27:aY1 aY2"><span class="k">4</span><span class="st m">∠XYW ≅ ∠ZYW</span><span class="why">تعريف منصّف الزاوية</span></div>
+<div class="step prow" data-hl="f27:pWXY pWZY"><span class="k">5</span><span class="st m">△WXY ≅ △WZY</span><span class="why">مسلّمة <b class="m">ASA</b></span></div>
+<div class="step"><div class="res">النتيجة: <span class="ans"><span class="m">△WXY ≅ △WZY · ASA</span></span></div>
+<p class="note">الضلع المشترك <span class="m">WY</span> محصور بين الزاويتين المتطابقتين عند <span class="m">W</span> و <span class="m">Y</span>.</p></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ===================== 10 · 28–29 ===================== -->
+<section class="slide" data-title="إيجاد المتغيرات · 28–29">
+<div class="wrap">
+<div class="shead">
+<div class="kicker">// PROBLEMS 28 → 29 · VARIABLES</div>
+<h2>أوجد قيمة كل متغير</h2>
+<div class="concept"><span class="d"></span>المثلث متطابق الزوايا ⇔ متطابق الأضلاع · الضلعان المتطابقان تقابلهما زاويتان متطابقتان</div>
+</div>
+<div class="grid2">
+<div class="panel">
+<div class="phead"><i></i><i></i><i></i><span class="sp"></span><span>render://figure_28-29.svg</span></div>
+<div class="pbody duo">
+<div><svg class="fig" id="f28" viewBox="0 0 320 280"></svg><div class="cap"><b>28</b> · متطابق الزوايا</div></div>
+<div><svg class="fig" id="f29" viewBox="0 0 320 280"></svg><div class="cap"><b>29</b> · متطابق الضلعين</div></div>
+</div>
+<div class="lab" data-lab="28"></div>
+</div>
+<div class="panel term">
+<div class="phead"><i></i><i></i><i></i><span class="sp"></span><span>solver.run(28..29)</span><button class="btn run">▶ تشغيل</button></div>
+<div class="steps">
+<div class="step" data-hl="f28:aT aP aQ">
+<div class="sn">28 › الفكرة</div>
+<p>الزوايا الثلاث متطابقة ⇐ المثلث متطابق الزوايا ⇐ إذن هو <b>متطابق الأضلاع</b></p>
+</div>
+<div class="step" data-hl="f28:TQ PQ">
+<div class="sn">28 › المعادلة</div>
+<div class="eqs"><span class="eq">5x − 1 = 7x − 7</span><span class="eq">−1 + 7 = 7x − 5x</span><span class="eq">6 = 2x  →  x = 3</span></div>
+</div>
+<div class="step" data-hl="f28:TP TQ PQ">
+<div class="sn">28 › التحقق</div>
+<div class="eqs"><span class="eq">(10/3)(3) + 4 = 14</span><span class="eq">5(3) − 1 = 14</span><span class="eq">7(3) − 7 = 14 ✓</span></div>
+<div class="res">النتيجة: <span class="ans"><span class="m">x = 3</span></span></div>
+</div>
+<div class="step" data-hl="f29:UM VM aU aV">
+<div class="sn">29 › زاويتا القاعدة</div>
+<p>الضلعان متطابقان <span class="m">(12 = 12)</span> ⇐ الزاويتان المقابلتان لهما متطابقتان، فالزاوية الأخرى أيضًا <span class="m">52°</span></p>
+</div>
+<div class="step" data-hl="f29:aM">
+<div class="sn">29 › قيمة y</div>
+<span class="eq">y = 180 − (52 + 52) = 76</span>
+<div class="res">النتيجة: <span class="ans"><span class="m">y = 76</span></span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ===================== 11 · DASHBOARD ===================== -->
+<section class="slide" data-title="لوحة النتائج">
+<div class="wrap">
+<div class="shead">
+<div class="kicker">// BUILD SUCCESSFUL · 18/18 SOLVED</div>
+<h2>لوحة النتائج النهائية</h2>
+<div class="concept"><span class="d"></span>اضغط على أي بطاقة للرجوع إلى حلّها</div>
+</div>
+<div class="steps dash">
+<div class="step" data-go="1"><div class="q"><span>Q08</span><i></i></div><div class="a">منفرج الزاوية</div><div class="t">△ADB</div></div>
+<div class="step" data-go="1"><div class="q"><span>Q09</span><i></i></div><div class="a">قائم الزاوية</div><div class="t">△BCD</div></div>
+<div class="step" data-go="1"><div class="q"><span>Q10</span><i></i></div><div class="a">قائم الزاوية</div><div class="t">△ABC</div></div>
+<div class="step" data-go="2"><div class="q"><span>Q11</span><i></i></div><div class="a m">x = 12</div><div class="t m">RS = RT = 31, ST = 42</div></div>
+<div class="step" data-go="2"><div class="q"><span>Q12</span><i></i></div><div class="a m">x = 6</div><div class="t">كل ضلع = 24</div></div>
+<div class="step" data-go="3"><div class="q"><span>Q14</span><i></i></div><div class="a m">m∠1 = 70°</div><div class="t">مجموع زوايا المثلث</div></div>
+<div class="step" data-go="3"><div class="q"><span>Q15</span><i></i></div><div class="a m">m∠2 = 110°</div><div class="t">زاويتان متكاملتان</div></div>
+<div class="step" data-go="3"><div class="q"><span>Q16</span><i></i></div><div class="a m">m∠3 = 82°</div><div class="t">متقابلتان بالرأس</div></div>
+<div class="step" data-go="4"><div class="q"><span>Q18</span><i></i></div><div class="a m">ABCD ≅ FGHJ</div><div class="t">4 أضلاع + 4 زوايا</div></div>
+<div class="step" data-go="5"><div class="q"><span>Q19</span><i></i></div><div class="a m">△XYZ ≅ △JKL</div><div class="t">3 أضلاع + 3 زوايا</div></div>
+<div class="step" data-go="6"><div class="q"><span>Q21</span><i></i></div><div class="a">متطابقان ✓</div><div class="t m">SSS · 5, √26, √29</div></div>
+<div class="step" data-go="6"><div class="q"><span>Q22</span><i></i></div><div class="a">غير متطابقين ✗</div><div class="t m">AB = 8 ≠ XY = 4</div></div>
+<div class="step" data-go="7"><div class="q"><span>Q23</span><i></i></div><div class="a m">SAS</div><div class="t">ضلع، زاوية قائمة، ضلع مشترك</div></div>
+<div class="step" data-go="7"><div class="q"><span>Q24</span><i></i></div><div class="a">غير ممكن</div><div class="t">المعطيات لا تكفي</div></div>
+<div class="step" data-go="8"><div class="q"><span>Q26</span><i></i></div><div class="a m">ASA</div><div class="t">متبادلتان داخليًا</div></div>
+<div class="step" data-go="9"><div class="q"><span>Q27</span><i></i></div><div class="a m">ASA</div><div class="t">منصّف + ضلع مشترك</div></div>
+<div class="step" data-go="10"><div class="q"><span>Q28</span><i></i></div><div class="a m">x = 3</div><div class="t">كل ضلع = 14</div></div>
+<div class="step" data-go="10"><div class="q"><span>Q29</span><i></i></div><div class="a m">y = 76</div><div class="t">زاويتا القاعدة 52°</div></div>
+</div>
+<div class="panel" style="margin-top:22px">
+<div class="phead"><i></i><i></i><i></i><span class="sp"></span><span>about://how-this-was-built</span></div>
+<div class="stackchips">
+<span class="sc"><b>HTML5</b> · هيكل الصفحة</span>
+<span class="sc"><b>CSS3</b> · التصميم والحركة</span>
+<span class="sc"><b>JavaScript</b> · التنقل والحسابات</span>
+<span class="sc"><b>SVG</b> · رسم الأشكال برمجيًا</span>
+<span class="sc"><b>Math.hypot()</b> · صيغة المسافة</span>
+<span class="sc"><b>0</b> مكتبات خارجية</span>
+</div>
+</div>
+</div>
+</section>
+
+</main>
+
+<footer class="bottom">
+<div class="prog" id="prog"></div>
+<button class="btn" id="prevBtn">→ السابق</button>
+<div class="hint"><kbd>Space</kbd> الخطوة التالية · مرّر على الخطوات لإبراز الشكل</div>
+<div class="count" id="count">01 / 12</div>
+<button class="btn" id="nextBtn">التالي ←</button>
+</footer>
+
+<div class="menu" id="menu">
+<h3>// INDEX</h3>
+<div class="mgrid" id="mgrid"></div>
+</div>
+
+<script>
+(function(){
+'use strict';
+const NS='http://www.w3.org/2000/svg';
+const reg={};
+const mk=(tag,attrs,parent)=>{const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e};
+const add=(id,key,el)=>{(reg[id][key]=reg[id][key]||[]).push(el)};
+const unit=(a,b)=>{const dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy)||1;return[dx/L,dy/L]};
+
+/* ================= figure engine ================= */
+function draw(id,f){
+const svg=document.getElementById(id); if(!svg)return; reg[id]={};
+const P=f.pts, names=Object.keys(P);
+const cx=names.reduce((s,n)=>s+P[n][0],0)/names.length, cy=names.reduce((s,n)=>s+P[n][1],0)/names.length;
+const gPoly=mk('g',{},svg), gSeg=mk('g',{},svg), gMark=mk('g',{},svg), gTxt=mk('g',{},svg);
+(f.polys||[]).forEach(n=>{const alt=n.endsWith('*');const nm=n.replace('*','');
+const e=mk('polygon',{points:[...nm].map(c=>P[c].join(',')).join(' '),class:'poly'+(alt?' alt':'')},gPoly);add(id,'p'+nm,e)});
+names.forEach(n=>{const e=mk('circle',{cx:P[n][0],cy:P[n][1],r:15,class:'halo'},gPoly);add(id,'v'+n,e)});
+(f.segs||[]).forEach((s,i)=>{const a=P[s[0]],b=P[s[1]];
+const e=mk('path',{d:`M${a[0]},${a[1]} L${b[0]},${b[1]}`,class:'seg',pathLength:1,style:`--d:${(i*0.12).toFixed(2)}s`},gSeg);
+add(id,s,e);add(id,s[1]+s[0],e)});
+(f.ticks||[]).forEach(([s,n])=>{const a=P[s[0]],b=P[s[1]];const[ux,uy]=unit(a,b),nx=-uy,ny=ux;const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;
+for(let k=0;k<n;k++){const o=(k-(n-1)/2)*6,x=mx+ux*o,y=my+uy*o;
+const e=mk('line',{x1:x-nx*7,y1:y-ny*7,x2:x+nx*7,y2:y+ny*7,class:'tick'},gMark);add(id,s,e);add(id,s[1]+s[0],e)}});
+(f.par||[]).forEach(s=>{const a=P[s[0]],b=P[s[1]];const[ux,uy]=unit(a,b),nx=-uy,ny=ux;const t=.3,x=a[0]+(b[0]-a[0])*t,y=a[1]+(b[1]-a[1])*t;
+mk('path',{d:`M${x-ux*7+nx*6},${y-uy*7+ny*6} L${x},${y} L${x-ux*7-nx*6},${y-uy*7-ny*6}`,class:'par'},gMark)});
+(f.right||[]).forEach(([v,p1,p2,key])=>{const V=P[v],u1=unit(V,P[p1]),u2=unit(V,P[p2]),s=14;
+const e=mk('path',{d:`M${V[0]+u1[0]*s},${V[1]+u1[1]*s} L${V[0]+u1[0]*s+u2[0]*s},${V[1]+u1[1]*s+u2[1]*s} L${V[0]+u2[0]*s},${V[1]+u2[1]*s}`,class:'rt'},gMark);
+if(key)add(id,key,e)});
+(f.angles||[]).forEach(a=>{const V=P[a.v],u1=unit(V,P[a.p[0]]),u2=unit(V,P[a.p[1]]);
+const a1=Math.atan2(u1[1],u1[0]),a2=Math.atan2(u2[1],u2[0]);let d=a2-a1;
+while(d>Math.PI)d-=2*Math.PI;while(d<=-Math.PI)d+=2*Math.PI;const sw=d>0?1:0;
+const n=a.n===undefined?1:a.n;
+for(let k=0;k<n;k++){const r=(a.r||20)+k*5;
+const s=[V[0]+r*Math.cos(a1),V[1]+r*Math.sin(a1)],e=[V[0]+r*Math.cos(a2),V[1]+r*Math.sin(a2)];
+const el=mk('path',{d:`M${s[0]},${s[1]} A${r},${r} 0 0 ${sw} ${e[0]},${e[1]}`,class:'arc '+(a.ac||'')},gMark);add(id,a.k,el)}
+if(a.t){const bx=u1[0]+u2[0],by=u1[1]+u2[1],bl=Math.hypot(bx,by)||1,dd=a.d||40;
+const t=mk('text',{x:V[0]+bx/bl*dd,y:V[1]+by/bl*dd,class:'alabel '+(a.cls||'')},gTxt);t.textContent=a.t;add(id,a.k,t)}
+});
+(f.side||[]).forEach(([s,txt,off])=>{const a=P[s[0]],b=P[s[1]];const[ux,uy]=unit(a,b);let nx=-uy,ny=ux;
+const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;if((mx-cx)*nx+(my-cy)*ny<0){nx=-nx;ny=-ny}
+const anchor=nx<-.35?'end':nx>.35?'start':'middle';
+const t=mk('text',{x:mx+nx*off,y:my+ny*off,class:'slabel','text-anchor':anchor},gTxt);t.textContent=txt;add(id,s,t);add(id,s[1]+s[0],t)});
+if(f.labels)Object.keys(f.labels).forEach(n=>{const[dx,dy]=f.labels[n];
+mk('circle',{cx:P[n][0],cy:P[n][1],r:3,class:'vdot'},gTxt);
+const t=mk('text',{x:P[n][0]+dx,y:P[n][1]+dy,class:'vlabel'},gTxt);t.textContent=n});
+}
+
+const FIGS={
+f8:{pts:{A:[40,250],D:[219,250],C:[340,250],B:[340,40]},
+polys:['ADB','BCD*','ABC'],segs:['AD','DC','CB','BA','BD'],right:[['C','B','A']],
+angles:[{k:'aA',v:'A',p:['D','B'],r:30,t:'35°',d:58},{k:'aB1',v:'B',p:['A','D'],r:34,t:'25°',d:80},
+{k:'aB2',v:'B',p:['D','C'],r:26,n:2,t:'30°',d:75},{k:'aD1',v:'D',p:['A','B'],r:20,t:'120°',d:44},{k:'aD2',v:'D',p:['B','C'],r:22,n:2,t:'60°',d:46}],
+labels:{A:[-16,6],D:[0,22],C:[16,18],B:[16,-8]}},
+f11:{pts:{R:[110,50],T:[330,50],S:[40,250]},segs:['RS','RT','ST'],ticks:[['RS',1],['RT',1]],
+side:[['RS','3x − 5',14],['RT','2x + 7',16],['ST','42',16]],labels:{R:[-8,-16],T:[12,-12],S:[-14,10]}},
+f12:{pts:{K:[180,42],J:[60,250],L:[300,250]},segs:['JK','KL','JL'],ticks:[['JK',1],['KL',1],['JL',1]],
+side:[['JK','3x + 6',14],['KL','4x',14],['JL','5x − 6',18]],labels:{K:[0,-16],J:[-14,10],L:[14,10]}},
+f14:{pts:{P:[110,40],Q:[30,230],O:[200,158],R:[430,60],S:[310,300]},
+polys:['PQO','ORS*'],segs:['PQ','QO','OR','RS','SO','OP'],
+angles:[{k:'aP',v:'P',p:['Q','O'],r:24,t:'75°',d:48},{k:'aQ',v:'Q',p:['P','O'],r:26,t:'35°',d:52},
+{k:'a1',v:'O',p:['P','Q'],r:20,t:'1',d:38,cls:'num'},{k:'a2',v:'O',p:['P','R'],r:13,t:'2',d:36,cls:'num'},
+{k:'aR',v:'R',p:['O','S'],r:32,t:'28°',d:62},{k:'a3',v:'S',p:['O','R'],r:22,t:'3',d:42,cls:'num'},
+{k:'a1v',v:'O',p:['R','S'],r:24,t:'70°',d:44,cls:'ghost'}]},
+f18:{pts:{A:[40,120],D:[150,45],C:[235,120],B:[160,240],F:[520,120],J:[410,45],H:[325,120],G:[400,240]},
+segs:['AB','BC','CD','DA','FG','GH','HJ','JF'],
+ticks:[['DA',3],['JF',3],['AB',1],['FG',1],['BC',1],['GH',1],['CD',2],['HJ',2]],
+angles:[{k:'aD',v:'D',p:['A','C'],r:16,n:2},{k:'aJ',v:'J',p:['H','F'],r:16,n:2},
+{k:'aC',v:'C',p:['D','B'],r:18},{k:'aH',v:'H',p:['J','G'],r:18},
+{k:'aB',v:'B',p:['A','C'],r:16,n:3},{k:'aG',v:'G',p:['F','H'],r:16,n:3}],
+labels:{A:[-15,4],D:[0,-15],C:[15,4],B:[0,20],F:[15,4],J:[0,-15],H:[-15,4],G:[0,20]}},
+f19:{pts:{X:[73,66],Y:[40,220],Z:[250,220],L:[310,40],K:[520,40],J:[487,194]},
+segs:['XY','YZ','ZX','LK','KJ','JL'],ticks:[['XY',1],['JK',1],['XZ',2],['JL',2]],
+side:[['YZ','40',16],['LK','40',16]],
+angles:[{k:'aX',v:'X',p:['Y','Z'],r:18,t:'61°',d:46},{k:'aY',v:'Y',p:['X','Z'],r:16,n:2,t:'78°',d:42},{k:'aZ',v:'Z',p:['X','Y'],r:22,n:3,t:'41°',d:56},
+{k:'aJ',v:'J',p:['K','L'],r:18,t:'61°',d:46},{k:'aK',v:'K',p:['L','J'],r:16,n:2,t:'78°',d:42},{k:'aL',v:'L',p:['K','J'],r:22,n:3,t:'41°',d:56}],
+labels:{X:[-6,-16],Y:[-14,10],Z:[14,10],L:[-14,-6],K:[14,-6],J:[6,18]}},
+f23:{pts:{A:[150,30],B:[40,220],C:[150,220],D:[260,220]},polys:['ABC','ADC*'],
+segs:['AB','AC','AD','BC','CD'],right:[['C','A','D','r2'],['C','A','B','r1']],ticks:[['BC',1],['CD',1]],
+labels:{A:[0,-14],B:[-14,12],C:[0,20],D:[14,12]}},
+f24:{pts:{A:[50,40],B:[230,40],C:[50,220],D:[230,220]},polys:['ABC','DBC*'],
+segs:['AB','AC','CD','BD','BC'],ticks:[['AC',2],['CD',1]],
+labels:{A:[-14,-8],B:[14,-8],C:[-14,12],D:[14,12]}},
+f26:{pts:{A:[50,40],D:[310,40],B:[50,240],C:[310,240],E:[180,140]},polys:['ABE','CDE*'],
+segs:['AB','DC','AE','EC','BE','ED'],par:['AB','DC'],ticks:[['AB',1],['DC',1]],
+angles:[{k:'aA',v:'A',p:['B','E'],r:24},{k:'aC',v:'C',p:['D','E'],r:24},{k:'aB',v:'B',p:['A','E'],r:20,n:2},{k:'aD',v:'D',p:['C','E'],r:20,n:2}],
+labels:{A:[-15,-6],D:[15,-6],B:[-15,10],C:[15,10],E:[0,-17]}},
+f27:{pts:{W:[170,30],X:[60,140],Z:[280,140],Y:[170,320]},polys:['WXY','WZY*'],
+segs:['WX','WZ','XY','ZY','WY','XZ'],
+angles:[{k:'aW1',v:'W',p:['X','Y'],r:26},{k:'aW2',v:'W',p:['Z','Y'],r:26},{k:'aY1',v:'Y',p:['X','W'],r:34,n:2},{k:'aY2',v:'Y',p:['Z','W'],r:34,n:2}],
+labels:{W:[0,-15],X:[-15,4],Z:[15,4],Y:[0,19]}},
+f28:{pts:{T:[160,40],P:[40,248],Q:[280,248]},segs:['TP','TQ','PQ'],
+side:[['TP','(10/3)x + 4',12],['TQ','5x − 1',12],['PQ','7x − 7',18]],
+angles:[{k:'aT',v:'T',p:['P','Q'],r:20,ac:'p'},{k:'aP',v:'P',p:['T','Q'],r:20,ac:'p'},{k:'aQ',v:'Q',p:['T','P'],r:20,ac:'p'}]},
+f29:{pts:{U:[40,40],V:[280,40],M:[160,250]},segs:['UV','UM','VM'],ticks:[['UM',1],['VM',1]],
+side:[['UM','12',14],['VM','12',14]],
+angles:[{k:'aV',v:'V',p:['U','M'],r:24,t:'52°',d:50},{k:'aU',v:'U',p:['V','M'],r:24,t:'52°',d:50},{k:'aM',v:'M',p:['U','V'],r:24,t:'y°',d:52}]}
+};
+Object.keys(FIGS).forEach(id=>draw(id,FIGS[id]));
+// the "52°" at U is the deduced angle: show it softly
+(reg.f29.aU||[]).forEach(e=>{if(e.tagName==='text')e.style.opacity='.45'});
+
+function hl(spec,on,cls){cls=cls||'hl';if(!spec)return;
+spec.split('|').forEach(part=>{const i=part.indexOf(':');const fid=part.slice(0,i).trim(),keys=part.slice(i+1).trim().split(/\s+/);
+if(!reg[fid])return;keys.forEach(k=>(reg[fid][k]||[]).forEach(e=>e.classList.toggle(cls,on)))})}
+
+/* ================= bidi fix: isolate LTR math runs inside Arabic text ================= */
+const RX=/[A-Za-z0-9△∠°(][A-Za-z0-9△∠°≅≇≠=+−\-–()·.,\/ ∥⊥√²]*[A-Za-z0-9°)²]/g;
+const SKIP='svg,.m,.eq,.code,.sn,.kicker,.phead,.phdr,.lrow,.lh,.q,.cmd,script,style,bdi,.chip,.badge,.count,kbd,.brand,.tnum';
+function bidiFix(root){if(!root)return;const nodes=[];
+const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>{const p=n.parentElement;
+if(!p||p.closest(SKIP))return NodeFilter.FILTER_REJECT;return /[A-Za-z0-9°]/.test(n.data)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_SKIP}});
+while(w.nextNode())nodes.push(w.currentNode);
+nodes.forEach(n=>{const s=n.data;RX.lastIndex=0;if(!RX.test(s))return;RX.lastIndex=0;
+const frag=document.createDocumentFragment();let last=0,m;
+while((m=RX.exec(s))){if(m.index>last)frag.appendChild(document.createTextNode(s.slice(last,m.index)));
+const b=document.createElement('bdi');b.className='al';b.dir='ltr';b.textContent=m[0];frag.appendChild(b);last=m.index+m[0].length}
+if(last<s.length)frag.appendChild(document.createTextNode(s.slice(last)));n.parentNode.replaceChild(frag,n)})}
+bidiFix(document.getElementById('deck'));
+
+/* ================= coordinate plane ================= */
+const SETS={
+21:{A:[5,2],B:[1,5],C:[0,0],X:[-3,3],Y:[-7,6],Z:[-8,1]},
+22:{A:[3,-1],B:[3,7],C:[7,7],X:[-7,0],Y:[-7,4],Z:[1,4]}
+};
+const cp=document.getElementById('cp'),cpRows=document.getElementById('cpRows');
+const xmin=-9,xmax=8,ymin=-2,ymax=8,sc=28,pad=22;
+const tX=x=>pad+(x-xmin)*sc,tY=y=>pad+(ymax-y)*sc;
+cp.setAttribute('viewBox',`0 0 ${(xmax-xmin)*sc+pad*2} ${(ymax-ymin)*sc+pad*2}`);
+const neg=v=>v<0?'−'+(-v):String(v);
+const par=v=>v<0?'('+neg(v)+')':String(v);
+function dRow(n1,n2,P,Q){const dx=Q[0]-P[0],dy=Q[1]-P[1],d2=dx*dx+dy*dy,r=Math.sqrt(d2);
+const val=Number.isInteger(r)?String(r):`√${d2} ≈ ${r.toFixed(2)}`;
+return{d2,txt:`${n1}${n2} = √((${neg(Q[0])} − ${par(P[0])})² + (${neg(Q[1])} − ${par(P[1])})²) = √(${dx*dx} + ${dy*dy}) = ${val}`,short:Number.isInteger(r)?String(r):`√${d2}`}}
+function drawCP(k){
+const S=SETS[k];cp.innerHTML='';
+const g=mk('g',{},cp);
+for(let x=xmin;x<=xmax;x++)mk('line',{x1:tX(x),y1:tY(ymin),x2:tX(x),y2:tY(ymax),class:x===0?'axis':'gridl'},g);
+for(let y=ymin;y<=ymax;y++)mk('line',{x1:tX(xmin),y1:tY(y),x2:tX(xmax),y2:tY(y),class:y===0?'axis':'gridl'},g);
+for(let x=xmin;x<=xmax;x++)if(x&&x%2===0){const t=mk('text',{x:tX(x),y:tY(0)+11,class:'tnum'},g);t.textContent=neg(x)}
+for(let y=ymin;y<=ymax;y++)if(y&&y%2===0){const t=mk('text',{x:tX(0)-11,y:tY(y),class:'tnum'},g);t.textContent=neg(y)}
+const tri=(names,cls,delay)=>{const pts=names.map(n=>S[n]);
+mk('path',{d:'M'+pts.map(p=>tX(p[0])+','+tY(p[1])).join(' L')+' Z',class:cls+' drawp',pathLength:1,style:`--d:${delay}s`},cp);
+const c=[pts.reduce((s,p)=>s+p[0],0)/3,pts.reduce((s,p)=>s+p[1],0)/3];
+names.forEach(n=>{const p=S[n];mk('circle',{cx:tX(p[0]),cy:tY(p[1]),r:4.5,class:cls==='tri1'?'p1':'p2'},cp);
+const u=unit(c,p);const t=mk('text',{x:tX(p[0])+u[0]*16,y:tY(p[1])-u[1]*16,class:'ptl '+(cls==='tri1'?'p1':'p2')},cp);t.textContent=n})};
+tri(['A','B','C'],'tri1',0);tri(['X','Y','Z'],'tri2',.35);
+const f=n=>`${n}(${neg(S[n][0])}, ${neg(S[n][1])})`;
+document.getElementById('cpLegend').innerHTML=`<span style="color:var(--cyan)">${['A','B','C'].map(f).join(' · ')}</span><br><span style="color:var(--violet)">${['X','Y','Z'].map(f).join(' · ')}</span>`;
+document.getElementById('cpRun').textContent=`solver.run(${k})`;
+const pairs=[['A','B','X','Y'],['B','C','Y','Z'],['A','C','X','Z']];
+let all=true,html='';
+pairs.forEach(([a,b,x,y])=>{const r1=dRow(a,b,S[a],S[b]),r2=dRow(x,y,S[x],S[y]);const ok=r1.d2===r2.d2;if(!ok)all=false;
+html+=`<div class="step"><div class="sn">${k} › ${a}${b} ↔ ${x}${y}</div><div class="eqs"><span class="eq">${r1.txt}</span><span class="eq">${r2.txt}</span></div>
+<span class="chk ${ok?'ok':'bad'}">${ok?`✓ ${a}${b} = ${x}${y} = ${r1.short}`:`✗ ${a}${b} = ${r1.short} ≠ ${x}${y} = ${r2.short}`}</span></div>`});
+if(all){html+=`<div class="step"><div class="sn">${k} › الحكم</div><p>الأضلاع الثلاثة المتناظرة متطابقة، إذن حسب مسلّمة <span class="m">SSS</span>:</p>
+<div class="res">النتيجة: <span class="ans"><span class="m">△ABC ≅ △XYZ ✓</span></span></div></div>`}
+else{html+=`<div class="step"><div class="sn">${k} › الحكم</div><p>الضلعان المتناظران <span class="m">AB</span> و <span class="m">XY</span> غير متساويين، إذن العبارة غير صحيحة:</p>
+<div class="res">النتيجة: <span class="ans no"><span class="m">△ABC ≇ △XYZ</span></span></div>
+<p class="note">ملاحظة إضافية: لأن <span class="m">AB = YZ = 8</span> و <span class="m">BC = XY = 4</span> و <span class="m">AC = XZ = √80</span>، فالمثلثان متطابقان بترتيب آخر: <span class="m">△ABC ≅ △ZYX</span>.</p></div>`}
+cpRows.innerHTML=html;bidiFix(cpRows);
+}
+drawCP(21);
+document.querySelectorAll('.cpTab').forEach(b=>b.addEventListener('click',()=>{
+document.querySelectorAll('.cpTab').forEach(x=>x.classList.toggle('on',x===b));drawCP(+b.dataset.set);play(cpRows,150)}));
+
+/* ================= x-labs ================= */
+const fmt=v=>{const r=Math.round(v*100)/100;return String(r)};
+const LABS={
+'11':{title:'lab://11 · حرّك x حتى يتساوى RS و RT',min:0,max:20,step:1,val:4,target:12,rows:[['RS','3x − 5',x=>3*x-5],['RT','2x + 7',x=>2*x+7]]},
+'12':{title:'lab://12 · حرّك x حتى تتساوى الأضلاع الثلاثة',min:0,max:12,step:1,val:2,target:6,rows:[['JK','3x + 6',x=>3*x+6],['KL','4x',x=>4*x],['JL','5x − 6',x=>5*x-6]]},
+'28':{title:'lab://28 · حرّك x حتى تتساوى الأضلاع الثلاثة',min:0,max:6,step:.5,val:1,target:3,rows:[['يسار','(10/3)x + 4',x=>10/3*x+4],['يمين','5x − 1',x=>5*x-1],['قاعدة','7x − 7',x=>7*x-7]]}
+};
+document.querySelectorAll('.lab').forEach(lab=>{const c=LABS[lab.dataset.lab];if(!c)return;
+lab.innerHTML=`<div class="lh"><span dir="rtl">${c.title}</span><span class="xval">x = <b>${c.val}</b></span></div>
+<input type="range" min="${c.min}" max="${c.max}" step="${c.step}" value="${c.val}" aria-label="x">
+${c.rows.map(r=>`<div class="lrow"><span>${r[0]}</span><span>${r[1]}</span><div class="bar"><i></i></div><span class="v"></span></div>`).join('')}
+<div class="lstat"></div><div style="text-align:center;margin-top:8px"><button class="btn solve">⚡ حلّ تلقائي</button></div>`;
+const inp=lab.querySelector('input'),xv=lab.querySelector('.xval b'),bars=[...lab.querySelectorAll('.bar i')],vs=[...lab.querySelectorAll('.lrow .v')],st=lab.querySelector('.lstat');
+const mx=Math.max(1,...c.rows.map(r=>Math.max(r[2](c.min),r[2](c.max))));
+const upd=()=>{const x=+inp.value;xv.textContent=fmt(x);const vals=c.rows.map(r=>r[2](x));
+vals.forEach((v,i)=>{bars[i].style.width=Math.max(0,Math.min(100,v/mx*100))+'%';vs[i].textContent=fmt(v)});
+const eq=vals.every(v=>Math.abs(v-vals[0])<1e-9);lab.classList.toggle('solved',eq);
+st.innerHTML=eq?`✓ عند <span class="m">x = ${fmt(x)}</span> تتساوى الأطوال، وكل طول = <span class="m">${fmt(vals[0])}</span>`:'✗ الأطوال غير متساوية بعد — حرّك المؤشر'};
+inp.addEventListener('input',upd);upd();
+let anim=null;
+lab.querySelector('.solve').addEventListener('click',()=>{clearInterval(anim);
+anim=setInterval(()=>{const x=+inp.value;if(Math.abs(x-c.target)<1e-9){clearInterval(anim);return}
+inp.value=x+(c.target>x?c.step:-c.step);upd()},120)});
+});
+
+/* ================= deck navigation ================= */
+const slides=[...document.querySelectorAll('.slide')],N=slides.length;
+let cur=-1,auto=true,timers=[];
+const pad2=n=>String(n).padStart(2,'0');
+const clearT=()=>{timers.forEach(clearTimeout);timers=[]};
+function reveal(s){if(s.classList.contains('on'))return;s.classList.add('on');
+const h=s.dataset.hl;if(h&&auto){hl(h,true);setTimeout(()=>{if(hovered!==s)hl(h,false)},1400)}}
+function play(scope,delay){clearT();delay=delay===undefined?450:delay;
+const st=[...scope.querySelectorAll('.step')];st.forEach(s=>s.classList.remove('on'));
+let t=delay;st.forEach(s=>{timers.push(setTimeout(()=>reveal(s),t));t+=s.classList.contains('bl')?420:(s.closest('.dash')?90:800)})}
+function hideAll(scope){scope.querySelectorAll('.step').forEach(s=>s.classList.remove('on'))}
+function go(i,force){i=Math.max(0,Math.min(N-1,i));if(i===cur&&!force)return;
+const back=i<cur,nw=slides[i];clearT();clearPins();
+nw.classList.toggle('back',back);void nw.offsetWidth;
+if(cur>=0)slides[cur].classList.remove('active');
+nw.classList.add('active');cur=i;nw.scrollTop=0;
+if(auto||nw.querySelector('.dash')||i===0)play(nw);else hideAll(nw);
+document.getElementById('ttl').innerHTML=`<b>${pad2(i)}</b> · ${nw.dataset.title}`;bidiFix(document.getElementById('ttl'));
+document.getElementById('count').textContent=`${pad2(i+1)} / ${pad2(N)}`;
+document.getElementById('prog').style.width=(i/(N-1)*100)+'%';
+document.getElementById('prevBtn').disabled=i===0;document.getElementById('nextBtn').disabled=i===N-1;
+document.querySelectorAll('.mitem').forEach((m,k)=>m.classList.toggle('cur',k===i));
+try{history.replaceState(null,'','#s'+i)}catch(e){}
+}
+function step(){const s=slides[cur].querySelector('.step:not(.on)');if(s){clearT();const was=auto;auto=true;reveal(s);auto=was}else go(cur+1)}
+
+/* highlight: hover + pin */
+let hovered=null,pinned=null;
+function clearPins(){if(pinned){hl(pinned.dataset.hl,false,'pin');pinned.classList.remove('pinned');pinned=null}
+document.querySelectorAll('.readout').forEach(r=>r.innerHTML='اضغط على مثلث لإبرازه في الشكل')}
+document.addEventListener('mouseover',e=>{const t=e.target.closest('[data-hl]');
+if(t===hovered)return;if(hovered)hl(hovered.dataset.hl,false);hovered=t;if(t)hl(t.dataset.hl,true)});
+document.addEventListener('click',e=>{
+const b=e.target.closest('button');if(b)setTimeout(()=>b.blur(),0);
+const g=e.target.closest('[data-go]');if(g){toggleMenu(false);go(+g.dataset.go);return}
+const t=e.target.closest('[data-hl]');if(t){const same=t===pinned;clearPins();
+if(!same){pinned=t;t.classList.add('pinned');hl(t.dataset.hl,true,'pin');
+if(t.dataset.say){const r=t.closest('.panel').querySelector('.readout');if(r){r.innerHTML=t.dataset.say;bidiFix(r)}}}}
+const run=e.target.closest('.run');if(run){const sc=run.closest('.panel').querySelector('.steps');const was=auto;auto=true;play(sc,150);setTimeout(()=>{auto=was},150)}
+});
+
+/* buttons */
+document.getElementById('prevBtn').onclick=()=>go(cur-1);
+document.getElementById('nextBtn').onclick=()=>go(cur+1);
+const autoBtn=document.getElementById('autoBtn');
+autoBtn.onclick=()=>{auto=!auto;autoBtn.classList.toggle('on',auto);if(auto)play(slides[cur])};
+function fs(){try{if(!document.fullscreenElement){const p=document.documentElement.requestFullscreen();if(p&&p.catch)p.catch(()=>{})}else document.exitFullscreen()}catch(e){}}
+document.getElementById('fsBtn').onclick=fs;
+const menu=document.getElementById('menu');
+function toggleMenu(v){menu.classList.toggle('open',v===undefined?!menu.classList.contains('open'):v)}
+document.getElementById('menuBtn').onclick=()=>toggleMenu();
+menu.addEventListener('click',e=>{if(e.target===menu)toggleMenu(false)});
+document.getElementById('mgrid').innerHTML=slides.map((s,i)=>`<button class="mitem" data-go="${i}"><span class="n">${pad2(i)}</span><span>${s.dataset.title}</span></button>`).join('');
+bidiFix(document.getElementById('mgrid'));
+
+/* keyboard (RTL: left arrow = next) */
+addEventListener('keydown',e=>{
+if(e.target.matches&&e.target.matches('input'))return;
+const k=e.key;
+if(k==='ArrowLeft'||k==='PageDown'){e.preventDefault();go(cur+1)}
+else if(k==='ArrowRight'||k==='PageUp'){e.preventDefault();go(cur-1)}
+else if(k===' '||k==='Enter'){e.preventDefault();step()}
+else if(k==='Home')go(0);else if(k==='End')go(N-1);
+else if(k==='f'||k==='F'||k==='ب')fs();
+else if(k==='m'||k==='M'||k==='ة')toggleMenu();
+else if(k==='Escape')toggleMenu(false);
+});
+/* swipe */
+let tx=null,ty=0;const deck=document.getElementById('deck');
+deck.addEventListener('touchstart',e=>{if(e.target.closest('input')){tx=null;return}tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+deck.addEventListener('touchend',e=>{if(tx===null)return;const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;
+if(Math.abs(dx)>70&&Math.abs(dx)>Math.abs(dy)*1.6)go(cur+(dx>0?1:-1));tx=null},{passive:true});
+
+const m=/^#s(\d+)$/.exec(location.hash||'');go(m?+m[1]:0,true);
+addEventListener('hashchange',()=>{const q=/^#s(\d+)$/.exec(location.hash||'');if(q&&+q[1]!==cur)go(+q[1])});
+
+/* ================= background plexus ================= */
+const cv=document.getElementById('bg'),ctx=cv.getContext('2d');let W,H,dpr,pts=[];
+const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function rs(){dpr=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*dpr;cv.height=H*dpr;cv.style.width=W+'px';cv.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0);
+const n=Math.round(Math.min(70,W*H/22000));pts=Array.from({length:n},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25}))}
+function frame(){ctx.clearRect(0,0,W,H);
+for(const p of pts){p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1}
+for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const a=pts[i],b=pts[j],d=Math.hypot(a.x-b.x,a.y-b.y);
+if(d<150){ctx.strokeStyle=`rgba(56,189,248,${(1-d/150)*.22})`;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()}}
+ctx.fillStyle='rgba(125,211,252,.7)';for(const p of pts){ctx.beginPath();ctx.arc(p.x,p.y,1.4,0,6.283);ctx.fill()}
+if(!still)requestAnimationFrame(frame)}
+addEventListener('resize',rs);rs();frame();
+})();
+</script>
+</body>
+</html>
